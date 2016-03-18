@@ -21,7 +21,10 @@ var makeChain = function(query, _synonyms, callback) {
     allsyns.push(word);
     var tmp = thesaurus.find(word);
     var synonyms = [];
-    for (var i = 0; i < tmp.length; i++) {
+    var len;
+    if (tmp.length < 10) len = tmp.length;
+    else len = 10;
+    for (var i = 0; i < len; i++) {
       if (reg.test(tmp[i]) 
         && allsyns.indexOf(tmp[i]) == -1 
         && allsyns.indexOf(tmp[i]+"s") == -1
@@ -34,6 +37,7 @@ var makeChain = function(query, _synonyms, callback) {
     if (synonyms.length > synonymlevel) {
       synonyms.splice(synonymlevel, synonyms.length - synonymlevel);
     }
+
 
     wordPath.push({
       node:word,

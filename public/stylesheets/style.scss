@@ -186,7 +186,7 @@ header {
 		padding:1.25em 1em 1em 1em;
 		.word { text-transform: capitalize; }
 		.pos {
-			margin-bottom:1em;
+			margin-bottom:0.5em;
 			&::after { content:"."; }
 		}
 		.sorry, .word { font-weight:600; }

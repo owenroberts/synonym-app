@@ -42,7 +42,7 @@ block content
 		div#paths		
 			div.path(id="path-0")
 				div.nodes
-					div.node-dad=data.start
+					div.node-dad.noder=data.start
 					each node, index in data.path
 						div.node-dad
 							div.inner-nodes
@@ -55,7 +55,7 @@ block content
 								else
 									div.node.thenode=node.node
 
-					div.node-dad=data.end
+					div.node-dad.noder=data.end
 								
 
 									
@@ -457,6 +457,8 @@ block content
 			$('.definition').fadeIn();
 			$('.definition .word').html(word);
 			$('.definition .pos').html("Retrieving definition");
+			$('.definition .def').html("");
+
 		}
 
 		function loadDef(def) {
@@ -464,20 +466,34 @@ block content
 				$('.definition .pos').html(def.errormsg);
 				$('.definition .def').html("");
 			} else {
-				$('.definition .pos').html(def.data.pos);
-				$('.definition .def').html(def.data.def);
+				$('.definition .pos').html(wnpos[def.data.pos]);
+				$('.definition .def').html(def.data.gloss);
 			}
 			$('.definition .ok').on('click', function() {
 				$('.definition').fadeOut();
 			});
 		}
 
+		var wnpos = {
+			"s":"adjective",
+			"n":"noun",
+			"v":"verb",
+			"a":"adjective",
+			"r":"adverb"
+		};
+
 		/* look up word definitions*/
 		var getDefinition = function(elem) {
 			var word = elem.target.innerText;
 			showDef(word);
 			var syn;
-			if (pathData.path[0].node == word) syn = pathData.start;
+			if (word == end) {
+				syn = pathData.path[pathData.path.length - 1].node;
+			} else if (word == start) {
+				syn = pathData.path[0].node;
+			} else if (pathData.path[0].node == word) {
+				syn = pathData.start;
+			}
 			else {
 				for (var i = 0; i < pathData.path.length; i++) {
 					if (pathData.path[i].node == word) {
@@ -499,8 +515,8 @@ block content
 				}
 			});
 		}
-
+		$('.noder').on('click', getDefinition);
 		$('.node').on('click', getDefinition);
 
 
-		});
+		}); // document ready

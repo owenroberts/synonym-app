@@ -231,7 +231,7 @@ header {
     .error .msg .word, .definition .msg .word, .sharemenu .msg .word {
       text-transform: capitalize; }
     .error .msg .pos, .definition .msg .pos, .sharemenu .msg .pos {
-      margin-bottom: 1em; }
+      margin-bottom: 0.5em; }
       .error .msg .pos::after, .definition .msg .pos::after, .sharemenu .msg .pos::after {
         content: "."; }
     .error .msg .sorry, .error .msg .word, .definition .msg .sorry, .definition .msg .word, .sharemenu .msg .sorry, .sharemenu .msg .word {

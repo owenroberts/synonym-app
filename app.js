@@ -8,7 +8,7 @@ var express = require('express')
     ,   NodeCache = require( "node-cache")
     ,   PathProvider = require('./pathprovider').PathProvider
     ,   chain = require('./chain')
-    ,   def = require('./def');
+    ,   def = require('./nw-def');
 
 var app = express();
 var cache = new NodeCache();
@@ -71,7 +71,7 @@ app.get('/search/modified', function(req, res) {
 });
 
 app.get('/def', function(req, res){
-    def.getDef(req.query.word, req.query.syn, function(err, result) {
+    def.findDef(req.query.word, req.query.syn, function(err, result) {
         if (err) res.json({ errormsg: err });
         else res.json({ data: result });
     });
