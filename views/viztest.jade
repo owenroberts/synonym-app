@@ -1,0 +1,44 @@
+extends layout
+block content
+	style(type='text/css').
+		#main {
+			margin-bottom:0;
+			height:auto;
+			overflow: auto;
+			font-size:10px;
+		}
+		#attempts {
+			font-size:10px;
+		}
+		.set {
+		}
+		.attempt {
+			margin-bottom: 1em;
+			margin-left: 1em;
+			display:inline-block;
+		}
+
+	div#main
+		h2= start + " -> " + end
+		ul.attempt
+			each node in data.path
+				li.word= node.node.word
+			li.weight
+				strong="weight: " + data.weight
+		h2="Attempts: " + data.count
+		div#attempts 
+			each set in data.attempts
+				div.set
+					each attempt in set
+						ul.attempt
+							
+							each word in attempt.attempt
+								li.word=word
+							li.weight
+								strong="weight: " + attempt.weight
+
+
+
+	script(type='text/javascript').
+		var pathData = !{JSON.stringify(data)};
+		console.log(pathData);

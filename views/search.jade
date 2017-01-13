@@ -55,12 +55,12 @@ block content
 							div.inner-nodes
 								if node.alternates
 									for alt in node.alternates
-										if alt == node.node
-											div.node.thenode=alt
+										if alt.word == node.node.word
+											div.node.thenode=alt.word
 										else
-											div.node.alternate=alt
+											div.node.alternate=alt.word
 								else
-									div.node.thenode=node.node
+									div.node.thenode=node.node.word
 
 					div.node-dad=data.end
 								
@@ -100,7 +100,7 @@ block content
 		var currentPathNum = pathNum;
 		var pathData = !{JSON.stringify(data)};
 		qstrings.push(pathData.queryString);
-		//console.log(pathData);
+		console.log(pathData);
 		if (pathData.error) reportError(pathData.error);
 		var start = pathData.start;
 		var end = pathData.end;

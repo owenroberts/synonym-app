@@ -42,15 +42,30 @@ app.get('/', function(req, res) {
     });
 });
 
+app.get('/viztest', function(req, res) {
+    var query = {
+        start: req.query.s,
+        end: req.query.e,
+        nodelimit: req.query.nl,
+        synonymlevel: req.query.sl,
+    };
+	chain.makeChain(query, [query.start], function(err, data) {
+		if (err) {
+			console.log(err);
+		} else res.render('viztest', {  data: data, start: query.start, end: query.end });
+	});
+});
+
 app.get('/search', function(req, res) {
-     getPath(req, function(result) {
-        if (result.error) {
-            if (req.get('Referrer').indexOf('?') === -1) 
-                res.redirect(req.get('Referrer')+'?err='+result.error);
-             else 
-                res.redirect(req.get('Referrer')+'&err='+result.error);
-        } else res.render('search', { data: result });
-    });
+	getPath(req, function(result) {
+		console.log(result);
+		if (result.error) {
+			if (req.get('Referrer').indexOf('?') === -1) 
+				res.redirect(req.get('Referrer')+'?err='+result.error);
+			 else 
+				res.redirect(req.get('Referrer')+'&err='+result.error);
+		} else res.render('search', {  data: result });
+	});
 });
 
 app.get('/search/add', function(req, res) {
@@ -71,6 +86,7 @@ app.get('/search/modified', function(req, res) {
 });
 
 var getPath = function(request, callback) {
+    // need allsynonyms for cases where we're generating a new chain
     var allsynonyms;
     if (request.query.allsynonyms) allsynonyms = request.query.as;
     else allsynonyms = [request.query.s];

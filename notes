@@ -19,3 +19,7 @@ later
 	- this is unclear, should go over with joel
 - node number goes to negative/0 when modified chain is longer than original nodelimit, not sure this needs to be fixed
 - https://thenounproject.com/
+
+1.13.2017
+- allsyns in chain.js (20) doesn't need to be a separate value, just referencing same array
+- difficulty of visualizing is that we don't know the successful path until we get to the end of the search
