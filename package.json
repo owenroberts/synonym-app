@@ -1,9 +1,9 @@
 {
-  "name": "synonym-app",
+  "name": "synopath",
   "version": "0.0.1",
   "private": true,
   "engines": {
-    "node": "0.12.7"
+    "node": "4.2.6"
   },
   "scripts": {
     "start": "node ./bin/www"

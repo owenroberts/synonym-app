@@ -8,7 +8,9 @@ var express = require('express')
     ,   NodeCache = require( "node-cache")
     ,   PathProvider = require('./pathprovider').PathProvider
     ,   chain = require('./chain')
-    ,   def = require('./def');
+    ,   def = require('./def')
+    ,   now = require("performance-now")
+    ;
 
 var app = express();
 var cache = new NodeCache();
@@ -49,10 +51,15 @@ app.get('/viztest', function(req, res) {
         nodelimit: req.query.nl,
         synonymlevel: req.query.sl,
     };
+    var startTime = now();
 	chain.makeChain(query, [query.start], function(err, data) {
 		if (err) {
 			console.log(err);
-		} else res.render('viztest', {  data: data, start: query.start, end: query.end });
+		} else {
+            var endTime = now();
+            console.log("time: " + (endTime-startTime).toFixed(3));
+            res.render('viztest', {  data: data, start: query.start, end: query.end });
+        }
 	});
 });
 

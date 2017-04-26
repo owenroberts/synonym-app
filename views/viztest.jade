@@ -5,40 +5,74 @@ block content
 			margin-bottom:0;
 			height:auto;
 			overflow: auto;
-			font-size:10px;
+			font-size:18px;
+			margin: 1em;
+			border:none;
 		}
-		#attempts {
-			font-size:10px;
+		.column {
+			display:inline-block;
+			vertical-align:top;
+			margin: 1em;
 		}
 		.set {
 		}
 		.attempt {
-			margin-bottom: 1em;
-			margin-left: 1em;
+
 			display:inline-block;
 		}
+		ul {padding:0;margin:0}
 
 	div#main
-		h2= start + " -> " + end
-		ul.attempt
-			each node in data.path
-				li.word= node.node.word
-			li.weight
-				strong="weight: " + data.weight
-		h2="Attempts: " + data.count
-		div#attempts 
-			each set in data.attempts
+		div.column
+			h2= start + " --> " + end
+			ul.attempt
+				li.word= start
+				each node in data.path
+					li.word= node.node.word
+				li.weight
+					strong="weight: " + data.weight
+		div.column
+			h2="attempts: "
+				span#counter= 1
+			div#attempts
 				div.set
-					each attempt in set
-						ul.attempt
-							
-							each word in attempt.attempt
-								li.word=word
-							li.weight
-								strong="weight: " + attempt.weight
+					ul#attempt
+						each word in data.attempts[0][0].attempt
+							li.word=word
+					div.weight
+						strong="weight: "
+							span#weight= data.attempts[0][0].weight
 
 
 
 	script(type='text/javascript').
 		var pathData = !{JSON.stringify(data)};
-		console.log(pathData);
+
+		var attempts = [];
+		for (var i = 0; i < pathData.attempts.length; i++) {
+			var a = pathData.attempts[i];
+			for (var j = 0; j < a.length; j++) {
+				attempts.push( a[j] );
+			}
+		}
+		var weight = document.querySelector('#weight');
+		var list = document.querySelector('#attempt');
+		var counter = document.querySelector('#counter');
+		var count = 1;
+		setInterval( function() {
+			if (count < attempts.length) {
+				count++;
+				counter.innerHTML = count;
+				weight.innerHTML = attempts[count].weight;
+				var wordList = "";
+				for (var i = 0; i < attempts[count].attempt.length; i++) {
+					wordList += "<li>" + attempts[count].attempt[i] + "</li>";
+				}
+				list.innerHTML = wordList;
+			}
+		}, 50);
+
+
+
+
+
