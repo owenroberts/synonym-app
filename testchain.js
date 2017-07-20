@@ -1,6 +1,8 @@
-var thesaurus = require("thesaurus");
 var program = require('commander');
 var chain = require('./chain');
+var shortChain = require('./shortChain');
+var twoChain = require('./twoChain');
+var now = require('performance-now');
 
 program
 	.version('0.0.1')
@@ -14,12 +16,72 @@ var query = {
 	synonymlevel: 10
 };
 
-chain.makeChain(query, [query.start], function(err, data) {
-	if (err) query.error = err;
-	else {
-		console.log(data.attempts.length);
-		console.log(data.attempts[0]);
-		console.log(data.attempts[1]);
-	}
-});
+function callRegularChain() {
+	var startTime = now();
+	chain.makeChain(query, [], function(err, data) {
+		if (err) console.log(err);
+		else {
+			var endTime = now();
+			console.log("");
+			console.log(" -- original flavor -- ");
+			console.log("time: ", (endTime-startTime).toFixed(3));
+			console.log("attempts: ", data.attempts.length);
+			console.log("nodes: ", data.nodelimit);
+			process.stdout.write(query.start + " ");
+			for (var i = 0; i < data.path.length; i++) {
+				process.stdout.write(data.path[i].node.word + " ");
+				process.stdout.write(data.path[i].node.weight + " ");
+			}
+			console.log("");
+			callShortChain();
+		}
+	});
+}
+
+function callShortChain() {
+	var startTime = now();
+	shortChain.makeChain(query, [], function(err, data) {
+		if (err) console.log(err);
+		else {
+			var endTime = now();
+			console.log("");
+			console.log(" -- shortest chain -- ");
+			console.log("time: ", (endTime-startTime).toFixed(3));
+			console.log("attempts: ", data.attempts.length);
+			console.log("nodes: ", data.nodelimit);
+			process.stdout.write(query.start + " ");
+			for (var i = 0; i < data.chain.length; i++) {
+				process.stdout.write(data.chain[i].node.word + " ");
+				process.stdout.write(data.chain[i].node.weight + " ");
+
+			}
+			console.log("");
+			callTwoChain();
+		}
+	});
+}
+
+function callTwoChain() {
+	var startTime = now();
+	twoChain.makeChain(query, [], function(err, data) {
+		if (err) console.log(err);
+		else {
+			var endTime = now();
+			console.log("");
+			console.log(" -- shortest chain -- ");
+			console.log("time: ", (endTime-startTime).toFixed(3));
+			console.log("attempts: ", data.attempts.length);
+			console.log("nodes: ", data.nodelimit);
+			process.stdout.write(query.start + " ");
+			for (var i = 0; i < data.chain.length; i++) {
+				process.stdout.write(data.chain[i].node.word + " ");
+				process.stdout.write(data.chain[i].node.weight + " ");
+
+			}
+			console.log("");
+		}
+	});
+}
+
+callRegularChain();
 

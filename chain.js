@@ -1,10 +1,10 @@
-var thesaurus = require("thesaurus");
+var thesaurus = require('thesaurus');
 
 var makeChain = function(query, allsynonyms, callback) {
 
 	var start = query.start.toLowerCase();
 	var end = query.end.toLowerCase();
-	var reg = /^[a-z]+$/;
+	var reg = /^[a-z]+$/; // test to make sure word only has lower case alphabetic character
 
 	var allpaths = [];
 	var nodelimit = 20;
@@ -16,7 +16,7 @@ var makeChain = function(query, allsynonyms, callback) {
 	var attempts = [];
 	var count = 0;
 
-	var buildPath = function(word, path, allsyns) {		
+	var buildPath = function(word, path, allsyns) {	
 		var wordPath = path;
 		allsyns.push(word.word);
 		var tmp = thesaurus.find(word.word);
@@ -98,7 +98,8 @@ var makeChain = function(query, allsynonyms, callback) {
 		} else {
 			if (nodenumber < nodelimit) {
 				nodenumber++;
-				buildPath({word:start, weight:0}, [], allsynonyms);
+				var newsyns = allsynonyms.slice(0);
+				buildPath({word:start, weight:0}, [], newsyns);
 				getShortestPath();
 			} else {
 				if (nodelimit == 20 && synonymlevel == 20) 
@@ -114,7 +115,8 @@ var makeChain = function(query, allsynonyms, callback) {
 			if (start != end) {
 				if (thesaurus.find(start).length > 0) {
 					if (thesaurus.find(end).length > 0) {
-						buildPath({word:start, weight:0}, [], allsynonyms);
+						var newsyns = allsynonyms.slice(0);
+						buildPath({word:start, weight:0}, [], newsyns);
 						getShortestPath();
 					} else {
 						callback("The second word was not found.");
