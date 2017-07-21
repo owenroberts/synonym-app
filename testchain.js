@@ -72,10 +72,9 @@ function callTwoChain() {
 			console.log("time: ", (endTime-startTime).toFixed(3));
 			console.log("attempts: ", data.attempts.length);
 			console.log("nodes: ", data.nodelimit);
-			process.stdout.write(query.start + " ");
 			for (var i = 0; i < data.chain.length; i++) {
-				process.stdout.write(data.chain[i].node.word + " ");
-				process.stdout.write(data.chain[i].node.weight + " ");
+				process.stdout.write(data.chain[i].word + " ");
+				process.stdout.write(data.chain[i].weight + " ");
 
 			}
 			console.log("");
@@ -83,5 +82,5 @@ function callTwoChain() {
 	});
 }
 
-callRegularChain();
+callTwoChain();
 
