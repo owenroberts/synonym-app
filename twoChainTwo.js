@@ -37,44 +37,39 @@ function makeChain(query, allSynonyms, callback) {
 		var endIndex = endChain.length-1;
 		allSynsCopy.push(startChain[startIndex].word);
 		allSynsCopy.push(endChain[endIndex].word);
-		var allSynsCopyCopy = allSynsCopy.slice(0);
-		
-		if (startChain[startIndex].synonyms === undefined) {
-			startChain[startIndex].synonyms = getSynonyms(startChain[startIndex].word, allSynsCopyCopy);
-			for (let i = 0; i < startChain[startIndex].synonyms.length; i++) {
-				allSynsCopy.push( startChain[startIndex].synonyms[i].word );
-			}
-		}
-
-		if (endChain[endIndex].synonyms === undefined) {
-			endChain[endIndex].synonyms = getSynonyms(endChain[endIndex].word, allSynsCopyCopy);
-			for (let i = 0; i < endChain[endIndex].synonyms.length; i++) {
-				allSynsCopy.push( endChain[endIndex].synonyms[i].word );
-			}
-		}
-
 		for (let i = 0; i < startChain[startIndex].synonyms.length; i++) {
 			let startCopy = startChain.slice(0);
 			let startSyn = startChain[startIndex].synonyms[i];
-			startCopy.push(startSyn);
+			allSynsCopy.push(startSyn.word);
 			for (let j = 0; j < endChain[endIndex].synonyms.length; j++) {
 				let endSyn = endChain[endIndex].synonyms[j];
+				allSynsCopy.push(endSyn.word);
 				if (startSyn.word == endSyn.word && !foundChain) {
 					foundChain = true;
-					for (let h = endChain.length-1; h >= 0; h--) {
+					for (let h = endChain.length-1; h > 0; h--) {
 						startCopy.push( endChain[h] );
 					}
 					sendData(startCopy);
-				} else if (startChain.length + endChain.length < currentNodeNumber - 1 && !foundChain) {
-					let endCopy = endChain.slice(0);
-					endCopy.push(endSyn);
-					buildChain(startCopy, endCopy, allSynsCopy.slice(0));
+				} else if (startChain.length + endChain.length < currentNodeNumber && !foundChain) {
+					logChains(startChain, endChain);
+					startSyn.synonyms = getSynonyms(startSyn.word, allSynsCopy.slice(0));
+					startCopy.push(startSyn);
+					buildChain(endChain.slice(0), startCopy, allSynsCopy.slice(0));
 				} else if (startChain.length + endChain.length >= currentNodeNumber && !foundChain) {
+					
 					attemptCount++;
 				}
 			}
 		}
-		
+	}
+
+	function logChains(startChain, endChain) {
+		for (let s = 0; s < startChain.length; s++)
+			process.stdout.write(startChain[s].word + " ");
+		process.stdout.write("- ");
+		for (let e = 0; e < endChain.length; e++)
+			process.stdout.write(endChain[e].word + " ");
+		console.log("");		
 	}
 
 	function sendData(chain) {
@@ -119,9 +114,12 @@ function makeChain(query, allSynonyms, callback) {
 	} else if (thesaurus.find(endWord).length == 0) {
 		callback("The second word was not found.");
 	} else {
+		//console.log( getSynonyms(startWord, allSynonyms.slice(0)) );
+		allSynonyms.push(startWord);
+		allSynonyms.push(endWord);
 		buildChain(
-			[{word:startWord, weight:0}], 
-			[{word:endWord, weight:0}], 
+			[{word:startWord, weight:0, synonyms: getSynonyms(startWord, allSynonyms.slice(0))}], 
+			[{word:endWord, weight:0, synonyms: getSynonyms(endWord, allSynonyms.slice(0))}], 
 			allSynonyms.slice(0)
 		);
 		getShortestChain();

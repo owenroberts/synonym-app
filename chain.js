@@ -1,138 +1,108 @@
-var thesaurus = require('thesaurus');
+var thesaurus = require("thesaurus");
 
-var makeChain = function(query, allsynonyms, callback) {
+var makeChain = function(query, allSynonyms, callback) {
+	var startWord = query.start.toLowerCase();
+	var endWord = query.end.toLowerCase();
+	var reg = /^[a-z]+$/;
 
-	var start = query.start.toLowerCase();
-	var end = query.end.toLowerCase();
-	var reg = /^[a-z]+$/; // test to make sure word only has lower case alphabetic character
-
-	var allpaths = [];
-	var nodelimit = 20;
-	var nodenumber = query.nodelimit;
-	var synonymlevel = query.synonymlevel;
+	const nodeNumberLimit = 20; // no chains more than this number of nodes
+	var currentNodeNumber = +query.nodelimit; // try to get under this first
+	const synonymLevel = +query.synonymlevel;
+	var foundChain = false;
 	
 	var data = {};
+	var attemptedChains = [];
+	var attemptCount = 0;
 
-	var attempts = [];
-	var count = 0;
-
-	var buildPath = function(word, path, allsyns) {	
-		var wordPath = path;
-		allsyns.push(word.word);
-		var tmp = thesaurus.find(word.word);
+	function buildChain(chain, allSynsCopy) {
+		var index = chain.length - 1;
+		allSynsCopy.push(chain[index].word);
+		var tempSyns = thesaurus.find(chain[index].word);
 		var synonyms = [];
-		for (var i = 0; i < tmp.length; i++) {
-			if (reg.test(tmp[i]) 
-				&& allsyns.indexOf(tmp[i]) == -1 
-				&& allsyns.indexOf(tmp[i]+"s") == -1
+		for (var i = 0; i < tempSyns.length; i++) {
+			if (reg.test(tempSyns[i]) 
+				&& allSynsCopy.indexOf(tempSyns[i]) == -1 
+				&& allSynsCopy.indexOf(tempSyns[i]+"s") == -1
 				&& synonyms.length < 10 ) {
 				synonyms.push({
-					word:tmp[i],
+					word:tempSyns[i],
 					weight:i+1
 				});
-				allsyns.push(tmp[i]);
+				allSynsCopy.push(tempSyns[i]);
 			}
 		}
-			
-		if (synonyms.length > synonymlevel) {
-			synonyms.splice(synonymlevel, synonyms.length - synonymlevel);
-		}
 
-		wordPath.push({
-			node:word,
-			synonyms:synonyms
-		});
+		chain.synonyms = synonyms;
 
-		if (synonyms.length > 0 && wordPath.length == nodenumber) attempts.push([]);
 		for (var i = 0; i < synonyms.length; i++) {
-			if (synonyms[i].word == end) {
-				wordPath.push({
-					node:synonyms[i],
-				});
-				allpaths.push(wordPath);
-			} else if (allpaths < 1) {
-				if (wordPath.length < nodenumber) {
-					var newpath = wordPath.slice(0);
-					buildPath(synonyms[i], newpath, allsyns);
-				} else if (wordPath.length == nodenumber) {
+			if (synonyms[i].word == endWord) {
+			 	chain.push(synonyms[i]);
+			 	foundChain = true;
+			 	sendData(chain);
+			} else  {
+				if (chain.length < currentNodeNumber && !foundChain) {
+					var newChain = chain.slice(0);
+					newChain.push(synonyms[i]);
+					buildChain(newChain, allSynsCopy.slice(0));
+				} else if (chain.length == currentNodeNumber && !foundChain) {
 					var attempt = [];
 					var attemptWeight = 0;
-					for (var j = 0; j < wordPath.length; j++) {
-						attempt.push(wordPath[j].node.word);
-						attemptWeight += wordPath[j].node.weight;
+					for (let j = 0; j < chain.length; j++) {
+						attempt.push(chain[j]);
+						attemptWeight += chain[j].weight;
 					} 
-
 					attempt.push(synonyms[i].word);
 					attemptWeight += synonyms[i].weight;
-					
-					attempts[attempts.length-1].push({attempt:attempt, weight:attemptWeight});
-					count++;
+					if (i == 0) 
+						attemptedChains.push([]);
+					attemptedChains[attemptedChains.length-1].push({attempt:attempt, weight:attemptWeight});
+					attemptCount++;
 				}
 			}
 		}
 	}
 
-	function sendData(path) {
+	function sendData(chain) {
 		var weight = 0;
-		for (var i = 0; i < path.length; i++) {
-			weight += path[i].node.weight;
+		for (var i = 0; i < chain.length; i++) {
+			weight += chain[i].weight;
 		}
-		var finalpath = [];
-		for (var i = 1; i < path.length; i++) {
-			finalpath[i - 1] = {};
-			finalpath[i - 1].node = path[i].node;
-			finalpath[i - 1].alternates = path[i-1].synonyms;
-		}
-		data.path = finalpath;
-		data.nodelimit = nodenumber;
-		data.synonymlevel = synonymlevel;
+		data.avgWeight = weight/chain.length;
+		data.chain = chain;
+		data.nodelimit = currentNodeNumber;
+		data.synonymlevel = synonymLevel;
 		data.weight = weight;
-		data.attempts = attempts;
-		data.count = count;
+		data.attempts = attemptedChains;
+		data.count = attemptCount;
 		callback(null, data);
 	}
 
-	function getShortestPath() {
-		if (allpaths.length > 0) {
-			sendData(allpaths[0]);
-		} else {
-			if (nodenumber < nodelimit) {
-				nodenumber++;
-				var newsyns = allsynonyms.slice(0);
-				buildPath({word:start, weight:0}, [], newsyns);
-				getShortestPath();
-			} else {
-				if (nodelimit == 20 && synonymlevel == 20) 
-					callback("Your search has exceeded the capacity of the algorithm.  Please try a new search.");
-				else
-					callback("Your search was not able to be performed with the current parameters.");
+	function getShortestChain() {
+		if (currentNodeNumber < nodeNumberLimit) {
+			currentNodeNumber++;
+			if (!foundChain) {
+				buildChain([{word:startWord, weight:0}], allSynonyms.slice(0));
+				getShortestChain();
 			}
+		} else {
+			callback("Your search was not able to be performed with the current parameters.");
 		}
 	}
 
-	if (start && end) {
-		if (reg.test(start) && reg.test(end)) {
-			if (start != end) {
-				if (thesaurus.find(start).length > 0) {
-					if (thesaurus.find(end).length > 0) {
-						var newsyns = allsynonyms.slice(0);
-						buildPath({word:start, weight:0}, [], newsyns);
-						getShortestPath();
-					} else {
-						callback("The second word was not found.");
-					}
-				} else {
-					callback("The first word was not found.");
-				}
-			} else {
-				callback("Please enter different words.")
-			}
-		} else {
-			callback("Please enter single words with no spaces or dashes.");
-		}
-	} else {
+	if (!startWord || !endWord) {
 		callback("Please enter two search words.");
+	} else if (!reg.test(startWord) || !reg.test(endWord)) {
+		callback("Please enter single words with no spaces or dashes.");
+	} else if (startWord == endWord) {
+		callback("Please enter different words.")
+	} else if (thesaurus.find(startWord).length == 0) {
+		callback("The first word was not found.");
+	} else if (thesaurus.find(endWord).length == 0) {
+		callback("The second word was not found.");
+	} else {
+		buildChain([{word:startWord, weight:0}], allSynonyms.slice(0));
+		getShortestChain();
 	}
-}
 
+}
 exports.makeChain = makeChain;
