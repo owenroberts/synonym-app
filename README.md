@@ -1,4 +1,4 @@
-Synopath  
+word bridge  
 concept and design joel stillman  
 development owen roberts  
 MIT License 2015  
